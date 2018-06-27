@@ -111,7 +111,11 @@ flw <- c(t(as.matrix(follows)))
 item <- as.factor(rep(1:12, nrow(data)))
 id <- as.factor(rep(1:nrow(data), each = 12))
 
-dfF <- data.frame(truth = trF, inference_strength = flw, item = item, id = id)
+# add CRT score as covariate (turns out to be useless)
+crt0 <- data$BatNballCorrect + data$lilypadCorrect + data$widgetsCorrect
+crt <- rep(crt0, each = 12)
+
+dfF <- data.frame(truth = trF, inference_strength = flw, crt = crt, item = item, id = id)
 dfF <- dfF[complete.cases(dfF),]
 
 mm1 <- glmer(truth ~ inference_strength + (1 + inference_strength | item) + (1 + inference_strength | id), 
@@ -130,6 +134,13 @@ nagelkerke(mm1, m.null1) # .86, which counts as very high
 t_respF <- as.numeric(predict(mm1, type = "response") > .5)
 mean(t_respF == dfF$truth) # 96 percent classified correctly 
 auc(roc(dfF$truth, t_respF)) # AUROC = .96, which is very high
+
+# the model with crt score added
+mm1crt <- glmer(truth ~ inference_strength + crt + (1 + inference_strength | item) + (1 + inference_strength | id), 
+             data = dfF, family = binomial, 
+             control = glmerControl(optimizer = "optimx", calc.derivs = FALSE, optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(mm1crt)
 
 # not-false (so both true and neither/nor) versus false
 trC <- ceiling(c(t(as.matrix(truth))))
