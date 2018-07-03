@@ -67,7 +67,7 @@ df0 %>% filter(truth == 0.0) -> dfF
 qplot(dfT$follows,
       geom="histogram",
       binwidth = 1,
-      main = "True: Inferential strength", 
+      main = "Inferential strength: True", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -82,7 +82,7 @@ qplot(dfT$follows,
 qplot(dfNN$follows,
       geom="histogram",
       binwidth = 1,
-      main = "Neither/nor: Inferential strength", 
+      main = "Inferential strength: Neither/nor", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -97,7 +97,7 @@ qplot(dfNN$follows,
 qplot(dfF$follows,
       geom="histogram",
       binwidth = 1,
-      main = "False: Inferential strength", 
+      main = "Inferential strength: False", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -317,7 +317,7 @@ df0 %>% filter(truth == 0.0) -> dfF
 qplot(dfT$antecedent,
       geom="histogram",
       binwidth = 1,
-      main = "True: Believability of antecedent", 
+      main = "Believability of antecedent: True", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -332,7 +332,7 @@ qplot(dfT$antecedent,
 qplot(dfNN$antecedent,
       geom="histogram",
       binwidth = 1,
-      main = "Neither/nor: Believability of antecedent", 
+      main = "Believability of antecedent: Neither/nor", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -347,7 +347,7 @@ qplot(dfNN$antecedent,
 qplot(dfF$antecedent,
       geom="histogram",
       binwidth = 1,
-      main = "False: Believability of antecedent", 
+      main = "Believability of antecedent: False", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -362,7 +362,7 @@ qplot(dfF$antecedent,
 qplot(dfT$consequent,
       geom="histogram",
       binwidth = 1,
-      main = "True: Believability of consequent", 
+      main = "Believability of consequent: True", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -377,7 +377,7 @@ qplot(dfT$consequent,
 qplot(dfNN$consequent,
       geom="histogram",
       binwidth = 1,
-      main = "Neither/nor: Believability of consequent", 
+      main = "Believability of consequent: Neither/nor", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -392,7 +392,7 @@ qplot(dfNN$consequent,
 qplot(dfF$consequent,
       geom="histogram",
       binwidth = 1,
-      main = "False: Believability of consequent", 
+      main = "Believability of consequent: False", 
       xlab = "Response option",
       ylab = "Count",
       fill=I("thistle4"), 
@@ -430,3 +430,27 @@ nagelkerke(mm1, m.null1) # .54
 t_respF <- as.numeric(predict(mm1, type = "response") > .5)
 mean(t_respF == dfF$truth) # 86 percent classified correctly 
 auc(roc(dfF$truth, t_respF)) # AUROC = .84
+
+# graphics
+mm01 <- glmer(truth ~ consequent + (1 + consequent | item) + (1 + consequent | id), 
+             data = dfF, family = binomial, 
+             control = glmerControl(optimizer = "optimx", calc.derivs = FALSE, optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+cfs <- unname(fixef(mm01))
+
+ind.fnc <- function(i) sapply(seq(0, 7.5, by=.05), function(x) 1/(1 + exp(-((cfs[1] + lme4::ranef(mm01)$id[i,1]) + (cfs[2] + lme4::ranef(mm01)$id[i,2])*x))))
+ind.m <- matrix(nrow = nrow(data2), ncol = 151, NA)
+for (i in 1:nrow(data2)) ind.m[i,] <- ind.fnc(i)
+
+mdf <- t(rbind(seq(0, 7.5, by=.05), ind.m))
+colnames(mdf) <- c("Xval", seq(1, nrow(data2)))
+rownames(mdf) <- seq(0, 7.5, by=.05)
+mdf <- data.frame(mdf)
+
+mdf %>% gather(key, Yval, 2:(nrow(data2) + 1)) %>% ggplot(aes(x=Xval, y=Yval, group=key)) + 
+  geom_line(alpha=.25, color="thistle4") + ggtitle("True vs. not true") +
+  xlab("Believability of consequent") + ylab("Probability of truth judgment") +
+  theme_minimal() + stat_function(fun=function(x) 1/(1 + exp(-(cfs[1] + cfs[2]*x))), color="grey20", size=.9, n=1000) +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
