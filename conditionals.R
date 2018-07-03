@@ -250,6 +250,7 @@ mdf2 %>% gather(key, Yval, 2:(nrow(data) + 1)) %>% ggplot(aes(x=Xval, y=Yval, gr
 data2 <- read_sav("HIT2.sav")
 
 # time spent on survey, demographics, ...
+describe(c(data2$Duration__in_seconds_))
 table(data2$gender)
 table(data2$edu)
 describe(as.numeric(c(data2$age)))
@@ -421,7 +422,7 @@ mm1 <- glmer(truth ~ antecedent + consequent + (1 + antecedent + consequent | it
 summary(mm1)
 
 # Tjur's coefficient of determination
-cod(mm1) # .50, which counts as very high
+cod(mm1) # .50
 
 m.null1 <- glm(truth ~ 1, data = dfF, family = binomial)
 
