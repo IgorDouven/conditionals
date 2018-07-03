@@ -10,6 +10,10 @@ library(ggthemes)
 library(ordinal)
 library(psych)
 
+##################
+## EXPERIMENT 1 ##
+##################
+
 data <- read_sav("HIT.sav")
 
 # time spent on survey, demographics, ...
@@ -21,7 +25,7 @@ describe(as.numeric(c(data$age)))
 truth <- data[,c(13:24)]
 follows <- data[,c(32:43)]
 
-# histogram of responses to inferential strenght questions
+# histogram of responses to truth questions
 qplot(c(as.matrix(truth)),
       geom="histogram",
       binwidth = .5,
@@ -238,3 +242,191 @@ mdf2 %>% gather(key, Yval, 2:(nrow(data) + 1)) %>% ggplot(aes(x=Xval, y=Yval, gr
   theme(axis.text = element_text(size=12, family="Avenir Book"), 
         axis.title = element_text(size=14, family="Avenir Book"),
         plot.title = element_text(size=16, family="Avenir Book"))
+
+##################
+## EXPERIMENT 2 ##
+##################
+
+data2 <- read_sav("HIT2.sav")
+
+# time spent on survey, demographics, ...
+table(data2$gender)
+table(data2$edu)
+describe(as.numeric(c(data2$age)))
+
+# select columns with relevant responses
+truth <- data2[,c(12:23)]
+ant <- data2[,c(31:42)]
+cons <- data2[,c(43:54)]
+
+# histogram of responses to truth questions
+qplot(c(as.matrix(truth)),
+      geom="histogram",
+      binwidth = .5,
+      main = "Truth", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.15)) + 
+  scale_x_continuous(breaks=c(0,.5,1), labels=c("False", "Neither/nor", "True")) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+# histogram of responses to antecedent believability questions
+qplot(c(as.matrix(ant)),
+      geom="histogram",
+      binwidth = 1,
+      main = "Believability of antecedent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+# histogram of responses to consequent believability questions
+qplot(c(as.matrix(cons)),
+      geom="histogram",
+      binwidth = 1,
+      main = "Believability of consequent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+df0 <- data.frame(truth = c(as.matrix(truth)), antecedent = c(as.matrix(ant)), consequent = c(as.matrix(cons)))
+df0 <- df0[complete.cases(df0), ]
+
+df0 %>% filter(truth == 1.0) -> dfT
+df0 %>% filter(truth == 0.5) -> dfNN
+df0 %>% filter(truth == 0.0) -> dfF
+
+qplot(dfT$antecedent,
+      geom="histogram",
+      binwidth = 1,
+      main = "True: Believability of antecedent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+qplot(dfNN$antecedent,
+      geom="histogram",
+      binwidth = 1,
+      main = "Neither/nor: Believability of antecedent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+qplot(dfF$antecedent,
+      geom="histogram",
+      binwidth = 1,
+      main = "False: Believability of antecedent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+qplot(dfT$consequent,
+      geom="histogram",
+      binwidth = 1,
+      main = "True: Believability of consequent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+qplot(dfNN$consequent,
+      geom="histogram",
+      binwidth = 1,
+      main = "Neither/nor: Believability of consequent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+qplot(dfF$consequent,
+      geom="histogram",
+      binwidth = 1,
+      main = "False: Believability of consequent", 
+      xlab = "Response option",
+      ylab = "Count",
+      fill=I("thistle4"), 
+      col=I("thistle4"), 
+      alpha=I(.2)) +
+  scale_x_continuous(breaks=c(1:7), labels=c(1:7)) +
+  theme_light() +
+  theme(axis.text = element_text(size=11, family="Avenir Book"), 
+        axis.title = element_text(size=14, family="Avenir Book"),
+        plot.title = element_text(size=16, family="Avenir Book"))
+
+# true versus not true (so both false and neither/nor)
+trF <- floor(c(t(as.matrix(truth))))
+antcd <- c(t(as.matrix(ant)))
+cnsqt <- c(t(as.matrix(cons)))
+item <- as.factor(rep(1:12, nrow(data2)))
+id <- as.factor(rep(1:nrow(data2), each = 12))
+
+dfF <- data.frame(truth = trF, antecedent = antcd, consequent = cnsqt, item = item, id = id)
+dfF <- dfF[complete.cases(dfF),]
+
+mm1 <- glmer(truth ~ antecedent + consequent + (1 + antecedent + consequent | item) + (1 + antecedent + consequent | id), 
+             data = dfF, family = binomial, 
+             control = glmerControl(optimizer = "optimx", calc.derivs = FALSE, optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(mm1)
+
+# Tjur's coefficient of determination
+cod(mm1) # .50, which counts as very high
+
+m.null1 <- glm(truth ~ 1, data = dfF, family = binomial)
+
+nagelkerke(mm1, m.null1) # .54
+
+t_respF <- as.numeric(predict(mm1, type = "response") > .5)
+mean(t_respF == dfF$truth) # 86 percent classified correctly 
+auc(roc(dfF$truth, t_respF)) # AUROC = .84
